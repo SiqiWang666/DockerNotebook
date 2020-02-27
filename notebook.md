@@ -1,5 +1,7 @@
-# Docker Client
-- `docker run <image> [<override default command>]`: creating and running a container from an image. = `docker create <image>` + `docker start <containerID>`. Tag, `-it`, to start a shell instantly, it is a common use when *no primary process* need to be run first.
+# Play with Container
+- `docker run <image> [<override default command>]`: creating and running a container from an image. = `docker create <image>` + `docker start <containerID>`. 
+    - `docker run -it <image> sh`: to start a shell instantly, it is a common use when *no primary process* need to be run first. `-i` attach terminal to STDIN, `-t` show up nicely formatted info, `sh` override default command.
+    - Port Mapping: `-p <localHost port> : <container post>`
 - `docker ps`: list all running containers (get ID), `--all`, list history containers (get ID for restart)
 - `docker start -a <containerID>`: start a container, `-a` attatch STDOUT/STDEFF to this terminal. Note: when you resume a stopped container, you cann't overwrite the default command.
 - `docker system prune`: clear up stopped containers and free up spaces
@@ -32,8 +34,17 @@
 
 ## Tag an Image
 `docker build -t <tag> .`
-`<DockerId>/<Repo/Project name>:<version>` When you run a container out of it, you don't necessarily specify version.
+Tag naming convention: `<DockerId>/<Repo/Project name>:<version>` When you run a container out of it, you don't necessarily specify version.
+
+## Define Work Dir
+`WORKDIR /usr/app`, specify the working directory of all later command
+
+## Copy Files
+`COPY ./ ./` the first `.`, the current working dir specified by `build` context argument. the second `.`, the current working dir of container `WORKDIR`
 
 ## Interesting
 Create a container out of an image. Create an image out of a container. Haha!
 `docker commit -c 'CMD ["redis-server"]' <containerID>`: `-c` specify the startup command
+
+# Pulic Image on Docker Hub
+The coventional keyword **alpine** represents the most compressed version.
