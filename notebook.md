@@ -2,7 +2,7 @@
 - `docker run <image> [<override default command>]`: creating and running a container from an image. = `docker create <image>` + `docker start <containerID>`. 
     - `docker run -it <image> sh`: to start a shell instantly, it is a common use when *no primary process* need to be run first. `-i` attach terminal to STDIN, `-t` show up nicely formatted info, `sh` override default command.
     - Port Mapping: `-p <localHost port> : <container post>`
-- `docker ps`: list all running containers (get ID), `--all`, list history containers (get ID for restart)
+- `docker ps`: list all **running** containers (get ID), `--all`, list history containers (get ID for restart)
 - `docker start -a <containerID>`: start a container, `-a` attatch STDOUT/STDEFF to this terminal. Note: when you resume a stopped container, you cann't overwrite the default command.
 - `docker system prune`: clear up stopped containers and free up spaces
 - `docker logs <containerID>`: get logs from a container
@@ -48,3 +48,31 @@ Create a container out of an image. Create an image out of a container. Haha!
 
 # Pulic Image on Docker Hub
 The coventional keyword **alpine** represents the most compressed version.
+
+# Docker Compose
+Docker Compose funtions like Docker CLI, but allows you to issue commands much more quickly.
+`docker-compose.yml` allows you to create multiple containers in a single file. In addtion, `docker-compose` will automatically set up communications (networking) between those containers.
+```shell
+# specify the docker-compose formatting version
+version: '3'
+# list all the services: containers
+services:
+  # Container running redis-server
+  # Traditionally application has a database driver URL to connect, here the URL is `redis-server`
+  redis-server:
+    # specif image
+    image: 'redis'
+  # Container running node-app
+  node-app:
+    # Build image out of current dir
+    build: .
+    # Map localPort : containerPort
+    ports:
+      - "4001:8081"
+    # Specify restart policy for node-app, check out restart policy cheatsheet
+    restart: always
+```
+- `docker-compose up`: start containers
+- `docker-compose up --build`: rebuild and start containers
+- `docker-compose down`: stop containers
+- `docker-compose ps`: list the containers inside `docker-compose.yml` file
