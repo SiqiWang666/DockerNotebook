@@ -1,7 +1,8 @@
 # Play with Container
-- `docker run <image> [<override default command>]`: creating and running a container from an image. = `docker create <image>` + `docker start <containerID>`. 
+- `docker run <image> [<override default command>]`: creating and running a container from an image. = `docker create <image>` + `docker start <containerID>`.
     - `docker run -it <image> sh`: to start a shell instantly, it is a common use when *no primary process* need to be run first. `-i` attach terminal to STDIN, `-t` show up nicely formatted info, `sh` override default command.
-    - Port Mapping: `-p <localHost port> : <container post>`
+    - **Port Mapping**: `-p <localHost port> : <container post>`
+    - **Volume**: Map folder inside a container to folder outside a container. `-v $(pwd):/app`: Map the `pwd` into the `/app` foler. `-v /app/node_module`: Put the bookmark on the folder, i.e., do not map this folder.
 - `docker ps`: list all **running** containers (get ID), `--all`, list history containers (get ID for restart)
 - `docker start -a <containerID>`: start a container, `-a` attatch STDOUT/STDEFF to this terminal. Note: when you resume a stopped container, you cann't overwrite the default command.
 - `docker system prune`: clear up stopped containers and free up spaces
@@ -13,9 +14,36 @@
 
 # Build Image
 ## Dockerfile
+### Base Image
 `FROM alpine`, use base image of `alpine`. It seems like giving you a start point to proceed further work. `alpine` has some pre-installed handy programs you might need.
-`RUN apk add --update redis`, `apk` package manager, 
-`CMD ["redis-server"]`
+> The coventional keyword **alpine** represents the most compressed version.
+
+### Define Work Dir
+`WORKDIR /usr/app`, specify the working directory of the container. So all later command will be executed under working directory.
+
+### Install Dependencies
+`RUN apk add --update redis`, `apk` package manager.
+
+### Copy Files
+`COPY ./ ./` The first `.`, the current working dir specified by `build` context argument. The second `.`, the current working dir of container `WORKDIR`.
+
+```
+Local Folder
+  .
+  |- src
+  |_ pulic
+
+Docker Container
+  .
+  |- src
+  |_ public
+```
+### Startup Command
+`CMD ["redis-server"]`, exec form
+
+## Dockerfile.dev
+A Dockerfile for development.
+Note: when you build image out of `Dockerfile.dev` make sure you add file option `docker build -f Dockerfile.dev .`, because `docker build` would automatically search for `Dockerfile`.
 
 ## Build Process Under the Hood
 `docker build .`: specify the dir of files/folders to use for the build
@@ -36,18 +64,10 @@
 `docker build -t <tag> .`
 Tag naming convention: `<DockerId>/<Repo/Project name>:<version>` When you run a container out of it, you don't necessarily specify version.
 
-## Define Work Dir
-`WORKDIR /usr/app`, specify the working directory of all later command
-
-## Copy Files
-`COPY ./ ./` the first `.`, the current working dir specified by `build` context argument. the second `.`, the current working dir of container `WORKDIR`
 
 ## Interesting
 Create a container out of an image. Create an image out of a container. Haha!
 `docker commit -c 'CMD ["redis-server"]' <containerID>`: `-c` specify the startup command
-
-# Pulic Image on Docker Hub
-The coventional keyword **alpine** represents the most compressed version.
 
 # Docker Compose
 Docker Compose funtions like Docker CLI, but allows you to issue commands much more quickly.
@@ -64,13 +84,31 @@ services:
     image: 'redis'
   # Container running node-app
   node-app:
-    # Build image out of current dir
+    # Build image out of current dir, Dockerfile.
     build: .
+    # Build image NOT out of current dir and NOT conventional dockerfile
+    # build:
+    #   context: /app
+    #   dockerfile: Dockerfile.dev
+
     # Map localPort : containerPort
     ports:
       - "4001:8081"
+    volumes:
+      # Don't try to map up against /app/node_module
+      # - means array in .yml
+      - /app/node_module
+      - .:/app
     # Specify restart policy for node-app, check out restart policy cheatsheet
     restart: always
+
+  # Start second service responsible for testing
+  tests:
+    build: .
+    volumes:
+      - /app/node_modules
+      - .:/app
+    command: ["npm", "run", "test"]
 ```
 - `docker-compose up`: start containers
 - `docker-compose up --build`: rebuild and start containers
