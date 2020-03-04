@@ -60,6 +60,21 @@ Note: when you build image out of `Dockerfile.dev` make sure you add file option
     - Removing intermediate container
     - Return a successfully built image.
 
+## Multi-step Builds
+For example, you are building a static React server. We use image `Nginx` to host static assets.
+
+```shell
+FROM node:alpine as builder
+WORKDIR '/app'
+COPY package.json .
+RUN npm install
+COPY . .
+Run npm run build
+
+FROM nginx
+COPY --from=builder /app/build /usr/share/nginx/html
+```
+
 ## Tag an Image
 `docker build -t <tag> .`
 Tag naming convention: `<DockerId>/<Repo/Project name>:<version>` When you run a container out of it, you don't necessarily specify version.
@@ -114,3 +129,18 @@ services:
 - `docker-compose up --build`: rebuild and start containers
 - `docker-compose down`: stop containers
 - `docker-compose ps`: list the containers inside `docker-compose.yml` file
+
+# CI/CD Workflow
+continuous integration + continous delivery/deployment
+## Travis CI
+Configuration of Travis CI: `.travis.yml`
+```shell
+sudo: required
+services: 
+  - docker
+
+# Commands need to be executed before testing
+before_install:
+  # Build image, return image ID
+  - docker build -t dockerUserName/appName -f Dockerfile.dev .
+```
