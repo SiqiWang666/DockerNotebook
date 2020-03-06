@@ -63,7 +63,7 @@ Note: when you build image out of `Dockerfile.dev` make sure you add file option
 ## Multi-step Builds
 For example, you are building a static React server. We use image `Nginx` to host static assets.
 
-```shell
+```bash
 FROM node:alpine as builder
 WORKDIR '/app'
 COPY package.json .
@@ -87,7 +87,7 @@ Create a container out of an image. Create an image out of a container. Haha!
 # Docker Compose
 Docker Compose funtions like Docker CLI, but allows you to issue commands much more quickly.
 `docker-compose.yml` allows you to create multiple containers in a single file. In addtion, `docker-compose` will automatically set up communications (networking) between those containers.
-```shell
+```bash
 # specify the docker-compose formatting version
 version: '3'
 # list all the services: containers
@@ -134,7 +134,7 @@ services:
 continuous integration + continous delivery/deployment
 ## Travis CI
 Configuration of Travis CI: `.travis.yml`
-```shell
+```bash
 sudo: required
 services: 
   - docker
@@ -143,4 +143,32 @@ services:
 before_install:
   # Build image, return image ID
   - docker build -t dockerUserName/appName -f Dockerfile.dev .
+
+# Script for test being executed
+script:
+  - docker run <imageID> npm run test -- --coverage
+
+# Script for deployment
+deploy:
+  # Tell Travis CI what platform I am using
+  provider: elasticbeanstalk
+  # info can be found from env URL on elastic beanstalk dashboard.
+  region: "us-west-2"
+  app: "docker"
+  env: "Docker-env"
+  # info can be found from S3
+  bucket_name: 
+  bucket_path:
+  # Only deploy when changes are made on master branch
+  on:
+    branch: master
+  # Create a new user for Travis CI to access service on IAM. Return Access key ID and secret key.
+  # Add those environment variable to Travis CI.
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key:
+    secure: "$AWS_SECRET_KEY"
 ```
+If the exit code is `0`, everything works successfully.
+
+## AWS Elastic Beanstalk
+Create a new application. Then create an environmnet, docker.
