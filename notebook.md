@@ -72,6 +72,7 @@ COPY . .
 Run npm run build
 
 FROM nginx
+# Copy from previous step
 COPY --from=builder /app/build /usr/share/nginx/html
 ```
 
@@ -89,8 +90,9 @@ Docker Compose funtions like Docker CLI, but allows you to issue commands much m
 `docker-compose.yml` allows you to create multiple containers in a single file. In addtion, `docker-compose` will automatically set up communications (networking) between those containers.
 ```bash
 # specify the docker-compose formatting version
+# '-' means array in .yml
 version: '3'
-# list all the services: containers
+# list all the available services
 services:
   # Container running redis-server
   # Traditionally application has a database driver URL to connect, here the URL is `redis-server`
@@ -111,9 +113,13 @@ services:
       - "4001:8081"
     volumes:
       # Don't try to map up against /app/node_module
-      # - means array in .yml
       - /app/node_module
+      # Every time container access `/app` folder, it will redirect to . 
       - .:/app
+    # specify environment variables
+    environment:
+      - REDIS_HOST=redis-server
+      - REDIS_POST=6379
     # Specify restart policy for node-app, check out restart policy cheatsheet
     restart: always
 
@@ -135,7 +141,9 @@ continuous integration + continous delivery/deployment
 ## Travis CI
 Configuration of Travis CI: `.travis.yml`
 ```bash
+# Have super-user level permission
 sudo: required
+# Tell Travis CI we need docker CLI pre-installed
 services: 
   - docker
 
@@ -172,3 +180,38 @@ If the exit code is `0`, everything works successfully.
 
 ## AWS Elastic Beanstalk
 Create a new application. Then create an environmnet, docker.
+
+# Multi-containers Deployment
+React, Express, Redis, PostgreSQL
+## Help from Nginx
+Nginx can be used as router, static assets host, load balancer, etc.
+
+### Static Files Host
+First, we need to create `default.conf` and then overwrite it so that nginx will perform as expected.
+```bash
+server {
+  listen 3000;
+  location / {
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+    try_files $uri $uri/ /index.html;
+  }
+}
+```
+
+Then we need to create production level Dockerfile (like multi-step build).
+```bash
+FROM node:alpine as builder
+WORKDIR '/app'
+COPY ./package.json .
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx
+EXPOSE 3000
+# overwrite config files
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
+# copy over static files from previous step
+COPY --from=builder /app/build /usr/shar/nginx/html
+```
