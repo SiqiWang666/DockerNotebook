@@ -13,7 +13,9 @@
 - `docker exec -it <contianerID> sh`: lauch a terminal from container itself instead of executing `docker exec` multiple times
 
 # Build Image
+
 ## Dockerfile
+
 ### Base Image
 `FROM alpine`, use base image of `alpine`. It seems like giving you a start point to proceed further work. `alpine` has some pre-installed handy programs you might need.
 > The coventional keyword **alpine** represents the most compressed version.
@@ -83,7 +85,7 @@ Tag naming convention: `<DockerId>/<Repo/Project name>:<version>` When you run a
 
 ## Interesting
 Create a container out of an image. Create an image out of a container. Haha!
-`docker commit -c 'CMD ["redis-server"]' <containerID>`: `-c` specify the startup command
+`docker commit -c 'CMD ["redis-server"]' <containerID>`, `-c` specify the startup command
 
 # Docker Compose
 Docker Compose funtions like Docker CLI, but allows you to issue commands much more quickly.
@@ -139,6 +141,10 @@ services:
 # CI/CD Workflow
 continuous integration + continous delivery/deployment
 ## Travis CI
+### Link GitHub to Travis CI
+Head to dashboard of Travis, then search your repo and link it. (If you don't have an account, sign up one).
+
+### Travis CI Confinuration
 Configuration of Travis CI: `.travis.yml`
 ```bash
 # Have super-user level permission
@@ -149,13 +155,19 @@ services:
 
 # Commands need to be executed before testing
 before_install:
-  # Build image, return image ID
+  # Build image, return image ID, using development dockerfile
   - docker build -t dockerUserName/appName -f Dockerfile.dev .
 
 # Script for test being executed
 script:
   - docker run <imageID> npm run test -- --coverage
 
+after_success:
+  - docker build -t dockerUserName/appName .
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_OD" --password-stdin
+  # Push image to docker hub
+  - docker push dockerUserName/appName
 # Script for deployment
 deploy:
   # Tell Travis CI what platform I am using
@@ -183,6 +195,7 @@ Create a new application. Then create an environmnet, docker.
 
 # Multi-containers Deployment
 React, Express, Redis, PostgreSQL
+
 ## Help from Nginx
 Nginx can be used as router, static assets host, load balancer, etc.
 
