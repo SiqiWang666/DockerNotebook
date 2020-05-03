@@ -228,3 +228,13 @@ COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
 # copy over static files from previous step
 COPY --from=builder /app/build /usr/shar/nginx/html
 ```
+
+# Kubernete
+
+A **cluster** consists of several nodes and a master. A **node** is either a VM or physical computer. There are several containers running on a node. **Master** controls which node does.
+
+
+*minikube*: use for managing the VM itself (LOCAL ONLY) `brew install minikube`. *kubectl*: use for managing containers in the node (ctl for interacting with master). `brew install kubectl`
+
+## How to start
+`minikube start`, automatically setup a VM (virtual box installed) and configure it to behave as a node in the cluster.
