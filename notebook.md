@@ -4,7 +4,7 @@
     - **Port Mapping**: `-p <localHost port> : <container post>`
     - **Volume**: Map folder inside a container to folder outside a container. `-v $(pwd):/app`: Map the `pwd` into the `/app` foler. `-v /app/node_module`: Put the bookmark on the folder, i.e., do not map this folder.
 - `docker ps`: list all **running** containers (get ID), `--all`, list history containers (get ID for restart)
-- `docker start -a <containerID>`: start a container, `-a` attatch STDOUT/STDEFF to this terminal. Note: when you resume a stopped container, you cann't overwrite the default command.
+- `docker start -a <containerID>`: start a container, `-a` attatch STDOUT/STDERR to this terminal. Note: when you resume a stopped container, you cann't overwrite the default command.
 - `docker system prune`: clear up stopped containers and free up spaces
 - `docker logs <containerID>`: get logs from a container
 - `docker stop <containerID>`: SIGTERM -> running process, giving process some extra time to perform some backup operations. Actually, if the process don't terminate in 10 seconds, Docker will issue a kill command.
@@ -49,6 +49,9 @@ Note: when you build image out of `Dockerfile.dev` make sure you add file option
 
 ## Build Process Under the Hood
 `docker build .`: specify the dir of files/folders to use for the build
+
+> Using option `--rm=true` to remove intermediate containers
+
 1. Step One: Download base image either from local cache or Docker public hub
 1. Step Two
     - Create a container of previous step's image
@@ -89,7 +92,7 @@ Create a container out of an image. Create an image out of a container. Haha!
 
 # Docker Compose
 Docker Compose funtions like Docker CLI, but allows you to issue commands much more quickly.
-`docker-compose.yml` allows you to create multiple containers in a single file. In addtion, `docker-compose` will automatically set up communications (networking) between those containers.
+`docker-compose.yml` allows you to create multiple containers in a single file. In addition, `docker-compose` will automatically set up communications (networking) between those containers.
 ```bash
 # specify the docker-compose formatting version
 # '-' means array in .yml
@@ -141,6 +144,7 @@ services:
 # CI/CD Workflow
 continuous integration + continous delivery/deployment
 ## Travis CI
+
 ### Link GitHub to Travis CI
 Head to dashboard of Travis, then search your repo and link it. (If you don't have an account, sign up one).
 
@@ -197,6 +201,7 @@ Create a new application. Then create an environmnet, docker.
 React, Express, Redis, PostgreSQL
 
 ## Help from Nginx
+
 Nginx can be used as router, static assets host, load balancer, etc.
 
 ### Static Files Host
@@ -228,6 +233,14 @@ COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
 # copy over static files from previous step
 COPY --from=builder /app/build /usr/shar/nginx/html
 ```
+
+# Things to Keep in Mind
+
+Slimming down your docker image.
+
+- small images are faster to copy around,
+- they are faster to start,
+- by removing unneeded things you are reducing the damage that a security exploit could do.
 
 # Kubernete
 
